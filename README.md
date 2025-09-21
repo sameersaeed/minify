@@ -2,6 +2,7 @@
 
 A simple, fast URL shortener written in Go with PostgreSQL and Prometheus monitoring.
 
+Demo frontend created using NextJS + React
 
 ## Features
 - Minifies (shortens) URLs quickly with custom codes 
