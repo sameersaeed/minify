@@ -35,7 +35,7 @@ Demo frontend created using NextJS + React
 ## Architecture
 ![Minify Architecture](https://github.com/sameersaeed/minify/releases/download/images/minify-architecture.png)
 - HTTP requests, clicks, and usage stats are handled by the Go backend  
-- User data and generated URLs are stored in PostgreSQL  
+- User data and generated URLs are stored in PostgreSQL database 
 - Prometheus collects metrics from backend for monitoring
 
 ## Local Setup
@@ -119,14 +119,3 @@ npm start     # start frontend
 | DATABASE_URL   | postgres://...                        | PostgreSQL connection string     |
 | BASE_URL       | http://localhost:8080                 | Base URL for short links         |
 | JWT_SECRET     | your-secret-key                       | JWT signing secret               |
-
-Build and run:
-```bash
-make
-./minify
-```
-or
-```bash
-go build -o minify .
-./minify
-```
