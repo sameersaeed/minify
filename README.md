@@ -114,7 +114,29 @@ go build -o minify .
 
 
 ## Architecture
-(Going to insert an image here)
+![Minify Architecture](https://github.com/sameersaeed/minify/releases/download/images/minify-architecture.png)
 - HTTP requests, clicks, and usage stats are handled by the Go backend  
-- URL & user data are stored in PostgreSQL  
+- User data and generated URLs are stored in PostgreSQL  
 - Prometheus collects metrics from backend for monitoring
+
+## Demo (images)
+- Home page (accessible by all users)
+
+
+![Minify Homepage](https://github.com/sameersaeed/minify/releases/download/images/minify-demo-home.png)
+
+
+- User dashboard
+
+
+![Minify User Dashboard](https://github.com/sameersaeed/minify/releases/download/images/minify-demo-dashboard.png)
+
+
+- Admin dashboard
+
+
+<img 
+  src="https://github.com/sameersaeed/minify/releases/download/images/minify-demo-admin.png" 
+  alt="Minify Admin Dashboard" 
+  width="800"
+/>
