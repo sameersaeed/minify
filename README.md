@@ -9,6 +9,34 @@ Demo frontend created using NextJS + React
 - User authorization (registration + login, JWT-based)  
 - Tracks user metrics such as clicks, popular URLs, and usage stats with Prometheus  
 
+## Demo (images)
+- Home page (accessible by all users)
+
+
+![Minify Homepage](https://github.com/sameersaeed/minify/releases/download/images/minify-demo-home.png)
+
+
+- User dashboard
+
+
+![Minify User Dashboard](https://github.com/sameersaeed/minify/releases/download/images/minify-demo-dashboard.png)
+
+
+- Admin dashboard
+
+
+<img 
+  src="https://github.com/sameersaeed/minify/releases/download/images/minify-demo-admin.png" 
+  alt="Minify Admin Dashboard" 
+  width="800"
+/>
+
+
+## Architecture
+![Minify Architecture](https://github.com/sameersaeed/minify/releases/download/images/minify-architecture.png)
+- HTTP requests, clicks, and usage stats are handled by the Go backend  
+- User data and generated URLs are stored in PostgreSQL  
+- Prometheus collects metrics from backend for monitoring
 
 ## Local Setup
 
@@ -92,16 +120,6 @@ npm start     # start frontend
 | BASE_URL       | http://localhost:8080                 | Base URL for short links         |
 | JWT_SECRET     | your-secret-key                       | JWT signing secret               |
 
-
-### Production
-Update `.env` with real values based on your hosted server's endpoint:
-```
-env
-BASE_URL=https://yourdomain.com
-DATABASE_URL=postgres://user:pass@prod-db:5432/minify?sslmode=require
-JWT_SECRET=<your-secret-key>
-```
-
 Build and run:
 ```bash
 make
@@ -112,32 +130,3 @@ or
 go build -o minify .
 ./minify
 ```
-
-
-## Architecture
-![Minify Architecture](https://github.com/sameersaeed/minify/releases/download/images/minify-architecture.png)
-- HTTP requests, clicks, and usage stats are handled by the Go backend  
-- User data and generated URLs are stored in PostgreSQL  
-- Prometheus collects metrics from backend for monitoring
-
-## Demo (images)
-- Home page (accessible by all users)
-
-
-![Minify Homepage](https://github.com/sameersaeed/minify/releases/download/images/minify-demo-home.png)
-
-
-- User dashboard
-
-
-![Minify User Dashboard](https://github.com/sameersaeed/minify/releases/download/images/minify-demo-dashboard.png)
-
-
-- Admin dashboard
-
-
-<img 
-  src="https://github.com/sameersaeed/minify/releases/download/images/minify-demo-admin.png" 
-  alt="Minify Admin Dashboard" 
-  width="800"
-/>
