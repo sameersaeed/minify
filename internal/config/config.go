@@ -1,15 +1,19 @@
 package config
 
 import (
+	"errors"
 	"os"
+	"strconv"
+	"strings"
 
 	"github.com/joho/godotenv"
 )
 
 type Config struct {
 	Port        string
-	DatabaseURL string
 	BaseURL     string
+	FrontendURL string
+	DatabaseURL string
 	JWTSecret   string
 }
 
@@ -19,15 +23,50 @@ func Load() *Config {
 
 	return &Config{
 		Port:        getEnv("PORT", "8080"),
-	    DatabaseURL: getEnv("DATABASE_URL", "postgres://postgres@localhost/minify?sslmode=disable"),
 		BaseURL:     getEnv("BASE_URL", "http://localhost:8080"),
-		JWTSecret:   getEnv("JWT_SECRET", "changeit"),
+		FrontendURL: getEnv("FRONTEND_URL", "http://localhost:3000"),
+		DatabaseURL: getEnv("DATABASE_URL", "postgres://postgres@localhost/minify?sslmode=disable"),
+		JWTSecret:   getEnv("JWT_SECRET"),
 	}
 }
 
-func getEnv(key, defaultValue string) string {
+// Validate ensures the environment variables are set correctly for the program
+func (c *Config) Validate() error {
+	var errs []string
+
+	if c.Port == "" {
+		errs = append(errs, "PORT is required")
+	} else if _, err := strconv.Atoi(c.Port); err != nil {
+		errs = append(errs, "PORT must be a valid number")
+	}
+
+	if c.BaseURL == "" {
+		errs = append(errs, "BASE_URL is required")
+	}
+
+	if c.DatabaseURL == "" {
+		errs = append(errs, "DATABASE_URL is required")
+	}
+
+	if c.JWTSecret == "" || c.JWTSecret == "changeit" {
+		errs = append(errs, "JWT_SECRET should be set to a secure random value (for example: openssl rand -base64 32)")
+	}
+
+	if len(errs) > 0 {
+		return errors.New("config validation failed:\n  - " + strings.Join(errs, "\n  - "))
+	}
+
+	return nil
+}
+
+func getEnv(key string, defaultValue ...string) string {
 	if value := os.Getenv(key); value != "" {
 		return value
 	}
-	return defaultValue
+
+	if len(defaultValue) > 0 {
+		return defaultValue[0]
+	}
+
+	return ""
 }

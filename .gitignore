@@ -1,3 +1,5 @@
-minify
 frontend/node_modules/*
 frontend/.next/*
+
+minify
+.env

@@ -9,18 +9,23 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/gorilla/mux"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"minify/internal/config"
 	"minify/internal/database"
 	"minify/internal/handlers"
 	"minify/internal/metrics"
 	"minify/internal/middleware"
 	"minify/internal/services"
+
+	"github.com/gorilla/mux"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 func main() {
-	cfg := config.Load()	// load configs from .env 
+	// load + validate configs from .env
+	cfg := config.Load()
+	if err := cfg.Validate(); err != nil {
+		log.Fatal(err)
+	}
 
 	// database
 	db, err := database.Connect(cfg.DatabaseURL)
@@ -47,8 +52,8 @@ func main() {
 	analyticsHandler := handlers.NewAnalyticsHandler(analyticsService)
 
 	router := mux.NewRouter()
-	
-	router.Use(middleware.CORS)
+
+	router.Use(middleware.CORS(cfg.FrontendURL))
 	router.Use(middleware.Logging)
 	router.Use(middleware.Metrics)
 
@@ -92,25 +97,24 @@ func main() {
 // setupRoutes connects handlers to their endpoints
 func setupRoutes(router *mux.Router, urlHandler *handlers.URLHandler, userHandler *handlers.UserHandler, analyticsHandler *handlers.AnalyticsHandler) {
 	api := router.PathPrefix("/api/v1").Subrouter()
-	
+
 	api.Methods(http.MethodOptions).HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 	})
 
-
-	// URL shortening 
+	// URL shortening
 	api.HandleFunc("/minify", urlHandler.MinifyURL).Methods("POST")
 	api.HandleFunc("/urls", urlHandler.GetUserURLs).Methods("GET")
-	
-	// user 
+
+	// user
 	api.HandleFunc("/users", userHandler.CreateUser).Methods("POST")
 	api.HandleFunc("/users/login", userHandler.LoginUser).Methods("POST")
-	
-	// analytics 
+
+	// analytics
 	api.HandleFunc("/analytics/overview", analyticsHandler.GetOverview).Methods("GET")
 	api.HandleFunc("/analytics/popular", analyticsHandler.GetPopularURLs).Methods("GET")
 	api.HandleFunc("/analytics/timeframe/{period}", analyticsHandler.GetTimeframeStats).Methods("GET")
-	
+
 	// redirect + healthcheck
 	router.HandleFunc("/{shortCode}", urlHandler.RedirectURL).Methods("GET")
 	router.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {

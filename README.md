@@ -113,9 +113,9 @@ npm start     # start frontend
 
 ## Environment variables
 
-| Variable       | Default                               | Description                      |
-|----------------|---------------------------------------|----------------------------------|
-| PORT           | 8080                                  | Backend port                     |
-| DATABASE_URL   | postgres://...                        | PostgreSQL connection string     |
-| BASE_URL       | http://localhost:8080                 | Base URL for short links         |
-| JWT_SECRET     | your-secret-key                       | JWT signing secret               |
+| Variable         | Default                               | Description                      |
+|------------------|---------------------------------------|----------------------------------|
+| `PORT`           | `8080`                                | Backend port                     |
+| `DATABASE_URL`   | `postgres://...`                      | PostgreSQL connection string     |
+| `BASE_URL`       | http://localhost:8080                 | Base URL for short links         |
+| `JWT_SECRET`     | `your-secret-key`                     | JWT signing secret               |
