@@ -12,6 +12,7 @@ import (
 	"minify/internal/config"
 	"minify/internal/database"
 	"minify/internal/handlers"
+	"minify/internal/limiter"
 	"minify/internal/metrics"
 	"minify/internal/middleware"
 	"minify/internal/services"
@@ -21,6 +22,8 @@ import (
 )
 
 func main() {
+	const maxBuckets = 100000
+
 	// load + validate configs from .env
 	cfg := config.Load()
 	if err := cfg.Validate(); err != nil {
@@ -45,9 +48,10 @@ func main() {
 	urlService := services.NewURLService(db)
 	userService := services.NewUserService(db)
 	analyticsService := services.NewAnalyticsService(db)
+	limiterService := limiter.NewLimiter(maxBuckets)
 
 	// handlers
-	urlHandler := handlers.NewURLHandler(urlService, analyticsService)
+	urlHandler := handlers.NewURLHandler(urlService, analyticsService, limiterService)
 	userHandler := handlers.NewUserHandler(userService)
 	analyticsHandler := handlers.NewAnalyticsHandler(analyticsService)
 

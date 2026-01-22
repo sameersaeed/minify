@@ -5,13 +5,14 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/gorilla/mux"
 	"minify/internal/services"
 	"minify/internal/utils"
+
+	"github.com/gorilla/mux"
 )
 
 type AnalyticsHandler struct {
-	analyticsService *services.AnalyticsService	// handles fetching analytics data
+	analyticsService *services.AnalyticsService // handles fetching analytics data
 }
 
 func NewAnalyticsHandler(analyticsService *services.AnalyticsService) *AnalyticsHandler {
@@ -22,11 +23,14 @@ func NewAnalyticsHandler(analyticsService *services.AnalyticsService) *Analytics
 func (h *AnalyticsHandler) GetOverview(w http.ResponseWriter, r *http.Request) {
 	log.Println("[Analytics] GetOverview request received")
 	stats, err := h.analyticsService.GetOverview()
+
 	if err != nil {
 		log.Println("[Analytics] Failed to get overview:", err)
 		utils.JSONError(w, "Failed to get overview stats", http.StatusInternalServerError)
+
 		return
 	}
+
 	utils.JSONResponse(w, stats, http.StatusOK)
 	log.Println("[Analytics] Overview stats sent")
 }
@@ -35,7 +39,8 @@ func (h *AnalyticsHandler) GetOverview(w http.ResponseWriter, r *http.Request) {
 func (h *AnalyticsHandler) GetPopularURLs(w http.ResponseWriter, r *http.Request) {
 	log.Println("[Analytics] GetPopularURLs request received")
 	limitStr := r.URL.Query().Get("limit")
-	limit := 10 
+	limit := 10
+
 	if limitStr != "" {
 		if parsedLimit, err := strconv.Atoi(limitStr); err == nil && parsedLimit > 0 {
 			limit = parsedLimit
@@ -48,6 +53,7 @@ func (h *AnalyticsHandler) GetPopularURLs(w http.ResponseWriter, r *http.Request
 		utils.JSONError(w, "Failed to get popular URLs", http.StatusInternalServerError)
 		return
 	}
+
 	utils.JSONResponse(w, urls, http.StatusOK)
 	log.Printf("[Analytics] Sent top %d popular URLs\n", limit)
 }
@@ -62,6 +68,7 @@ func (h *AnalyticsHandler) GetTimeframeStats(w http.ResponseWriter, r *http.Requ
 	if !validPeriods[period] {
 		log.Println("[Analytics] Invalid period:", period)
 		utils.JSONError(w, "Invalid period. Use: hour, day, month, year", http.StatusBadRequest)
+
 		return
 	}
 
@@ -69,6 +76,7 @@ func (h *AnalyticsHandler) GetTimeframeStats(w http.ResponseWriter, r *http.Requ
 	if err != nil {
 		log.Println("[Analytics] Failed to get timeframe stats:", err)
 		utils.JSONError(w, "Failed to get timeframe stats", http.StatusInternalServerError)
+
 		return
 	}
 

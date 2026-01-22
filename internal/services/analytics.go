@@ -20,6 +20,7 @@ func NewAnalyticsService(db *sql.DB) *AnalyticsService {
 // RecordClick logs a click asynchronously, storing user agent and ip
 func (s *AnalyticsService) RecordClick(urlID int, userAgent, ipAddress string) error {
 	log.Printf("[AnalyticsService] Recording click for URL ID %d\n", urlID)
+
 	go func() {
 		query := `
 			INSERT INTO clicks (url_id, user_agent, ip_address)
@@ -31,6 +32,7 @@ func (s *AnalyticsService) RecordClick(urlID int, userAgent, ipAddress string) e
 			log.Printf("[AnalyticsService] Click recorded for URL ID %d\n", urlID)
 		}
 	}()
+
 	return nil
 }
 
@@ -39,9 +41,9 @@ func (s *AnalyticsService) GetOverview() (*models.OverviewStats, error) {
 	log.Println("[AnalyticsService] Fetching overview stats")
 	var wg sync.WaitGroup
 	var mu sync.Mutex
-	stats := &models.OverviewStats{TimeframeData: make(map[string]interface{})}
 	var err error
 
+	stats := &models.OverviewStats{TimeframeData: make(map[string]interface{})}
 	wg.Add(4)
 
 	go func() { // total users
@@ -114,8 +116,8 @@ func (s *AnalyticsService) GetOverview() (*models.OverviewStats, error) {
 			stats.TimeframeData[period] = data
 		}
 	}
-
 	log.Println("[AnalyticsService] Overview stats fetched successfully")
+
 	return stats, nil
 }
 
@@ -124,6 +126,7 @@ func (s *AnalyticsService) GetPopularURLs(limit int) ([]*models.PopularURL, erro
 	if limit <= 0 {
 		limit = 10
 	}
+
 	log.Printf("[AnalyticsService] Fetching top %d popular URLs\n", limit)
 
 	query := `
@@ -149,8 +152,8 @@ func (s *AnalyticsService) GetPopularURLs(limit int) ([]*models.PopularURL, erro
 		}
 		urls = append(urls, &url)
 	}
-
 	log.Printf("[AnalyticsService] Fetched %d popular URLs\n", len(urls))
+
 	return urls, nil
 }
 
@@ -158,6 +161,7 @@ func (s *AnalyticsService) GetPopularURLs(limit int) ([]*models.PopularURL, erro
 func (s *AnalyticsService) GetTimeframeStats(period string) (*models.TimeframeStats, error) {
 	log.Println("[AnalyticsService] Fetching timeframe stats for period:", period)
 	var interval string
+
 	switch period {
 	case "hour":
 		interval = "1 hour"
@@ -217,5 +221,6 @@ func (s *AnalyticsService) GetTimeframeStats(period string) (*models.TimeframeSt
 	}
 
 	log.Println("[AnalyticsService] Timeframe stats fetched for period:", period)
+
 	return stats, nil
 }

@@ -4,29 +4,30 @@ import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { urlAPI } from '../lib/api';
 import { MinifyResponse } from '../types';
+import { toast, ToastContainer } from 'react-toastify';
+
+import 'react-toastify/dist/ReactToastify.css';
 
 const HomePage: React.FC = () => {
     const { user, isAuthenticated } = useAuth();
     const [url, setUrl] = useState('');
     const [minifyUrl, setMinifyUrl] = useState<MinifyResponse | null>(null);
     const [loading, setLoading] = useState(false);
-    const [error, setError] = useState('');
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
         if (!url.trim()) {
-            setError('Please enter a URL');
+            toast.error('Please enter a URL');
             return;
         }
 
         if (!url.match(/^https?:\/\/.+/)) {
-            setError('Please enter a valid URL (must start with http:// or https://)');
+            toast.error('Please enter a valid URL (must start with http:// or https://)');
             return;
         }
         
         setLoading(true);
-        setError('');
 
         try {
             const result = await urlAPI.minify({
@@ -35,8 +36,9 @@ const HomePage: React.FC = () => {
             });
             setMinifyUrl(result);
             setUrl('');
+            toast.success('URL successfully Minified!');
         } catch (err: any) {
-            setError(err.response?.data?.error || 'Failed to Minify URL');
+            toast.error(err.response?.data?.error || 'Failed to Minify URL');
         } finally {
             setLoading(false);
         }
@@ -50,7 +52,7 @@ const HomePage: React.FC = () => {
 
             <form onSubmit={handleSubmit} className="minify-form">
                 <div className="form-row">
-                    <label htmlFor="url">Enter a URL</label>
+                    <label htmlFor="url">Enter a URL to Minify</label>
                     <input
                         type="url"
                         id="url"
@@ -61,9 +63,6 @@ const HomePage: React.FC = () => {
                         disabled={loading}
                     />
                 </div>
-
-                {error && <div className="alert alert-error">{error}</div>}
-
                 <button
                     type="submit"
                     disabled={loading}
@@ -81,8 +80,6 @@ const HomePage: React.FC = () => {
 
             {minifyUrl && (
                 <div className="output-box">
-                    <h3 className="output-title">Success! 🎉</h3>
-
                     <div className="form-row">
                         <label>Short URL:</label>
                         <input
@@ -111,6 +108,18 @@ const HomePage: React.FC = () => {
                     </div>
                 </div>
             )}
+
+            <ToastContainer
+                position="top-right"
+                autoClose={3000}
+                hideProgressBar={false}
+                newestOnTop
+                closeOnClick
+                rtl={false}
+                pauseOnFocusLoss
+                draggable
+                pauseOnHover
+            />
         </div>
     );
 };

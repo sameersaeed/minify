@@ -6,8 +6,9 @@ import (
 	"fmt"
 	"log"
 
-	"golang.org/x/crypto/bcrypt"
 	"minify/internal/models"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
 type UserService struct {
@@ -48,6 +49,7 @@ func (s *UserService) CreateUser(username, email, password string) (*models.User
 	user.Username = username
 	user.Email = email
 	log.Println("[UserService] User created with ID:", user.ID)
+
 	return &user, nil
 }
 
@@ -68,6 +70,7 @@ func (s *UserService) AuthenticateUser(username, password string) (*models.User,
 		&user.PasswordHash,
 		&user.CreatedAt,
 	)
+
 	if err != nil {
 		if err == sql.ErrNoRows {
 			log.Println("[UserService] User", user.Username, "not found")

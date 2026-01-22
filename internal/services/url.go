@@ -3,10 +3,9 @@ package services
 import (
 	"crypto/rand"
 	"database/sql"
-	"encoding/base64"
 	"errors"
 	"fmt"
-	"strings"
+	"math/big"
 
 	"minify/internal/models"
 )
@@ -75,10 +74,12 @@ func (s *URLService) GetURLByShortCode(shortCode string) (*models.URL, error) {
 		&url.CreatedAt,
 		&url.UpdatedAt,
 	)
+
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, errors.New("URL not found")
 		}
+
 		return nil, fmt.Errorf("failed to get URL: %w", err)
 	}
 
@@ -88,10 +89,12 @@ func (s *URLService) GetURLByShortCode(shortCode string) (*models.URL, error) {
 // IncrementClickCount increases the click count for a URL
 func (s *URLService) IncrementClickCount(urlID int) error {
 	query := `UPDATE urls SET clicks = clicks + 1, updated_at = CURRENT_TIMESTAMP WHERE id = $1`
+
 	_, err := s.db.Exec(query, urlID)
 	if err != nil {
 		return fmt.Errorf("failed to increment click count: %w", err)
 	}
+
 	return nil
 }
 
@@ -122,6 +125,7 @@ func (s *URLService) GetUserURLs(userID int) ([]*models.URL, error) {
 			&url.CreatedAt,
 			&url.UpdatedAt,
 		)
+
 		if err != nil {
 			return nil, fmt.Errorf("failed to scan URL: %w", err)
 		}
@@ -131,21 +135,20 @@ func (s *URLService) GetUserURLs(userID int) ([]*models.URL, error) {
 	return urls, nil
 }
 
-// generateShortCode creates a random, url safe short code (max length 8 chars)
+// generateShortCode creates a random, url safe alphanumeric short code (max length 8 chars)
 func (s *URLService) generateShortCode() (string, error) {
-	bytes := make([]byte, 6)
-	if _, err := rand.Read(bytes); err != nil {
-		return "", err
+	b := make([]rune, 8)
+	var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
+
+	for i := range b {
+		n, err := rand.Int(rand.Reader, big.NewInt(int64(len(letters))))
+		if err != nil {
+			return "", err
+		}
+		b[i] = letters[n.Int64()]
 	}
 
-	shortCode := base64.URLEncoding.EncodeToString(bytes)
-	shortCode = strings.TrimRight(shortCode, "=")
-
-	if len(shortCode) > 8 {
-		shortCode = shortCode[:8]
-	}
-
-	return shortCode, nil
+	return string(b), nil
 }
 
 // shortCodeExists checks if a short code is already in the db
@@ -153,5 +156,6 @@ func (s *URLService) shortCodeExists(shortCode string) bool {
 	query := `SELECT EXISTS(SELECT 1 FROM urls WHERE short_code = $1)`
 	var exists bool
 	s.db.QueryRow(query, shortCode).Scan(&exists)
+
 	return exists
 }

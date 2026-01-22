@@ -6,15 +6,16 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/dgrijalva/jwt-go"
 	"minify/internal/config"
 	"minify/internal/models"
 	"minify/internal/services"
 	"minify/internal/utils"
+
+	"github.com/dgrijalva/jwt-go"
 )
 
 type UserHandler struct {
-	userService *services.UserService	// handles db operations on users
+	userService *services.UserService // handles db operations on users
 }
 
 func NewUserHandler(userService *services.UserService) *UserHandler {
@@ -25,9 +26,11 @@ func NewUserHandler(userService *services.UserService) *UserHandler {
 func (h *UserHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 	log.Println("[CreateUser] Request received")
 	var req models.CreateUserRequest
+
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		log.Println("[CreateUser] Failed to decode request:", err)
 		utils.JSONError(w, "Invalid request body", http.StatusBadRequest)
+
 		return
 	}
 	log.Printf("[CreateUser] Username: %s, Email: %s\n", req.Username, req.Email)
@@ -35,6 +38,7 @@ func (h *UserHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 	if err := utils.ValidateStruct(req); err != nil {
 		log.Println("[CreateUser] Validation failed:", err)
 		utils.JSONError(w, err.Error(), http.StatusBadRequest)
+
 		return
 	}
 
@@ -42,6 +46,7 @@ func (h *UserHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Println("[CreateUser] Service error:", err)
 		utils.JSONError(w, "Failed to create user", http.StatusInternalServerError)
+
 		return
 	}
 
@@ -53,9 +58,11 @@ func (h *UserHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 func (h *UserHandler) LoginUser(w http.ResponseWriter, r *http.Request) {
 	log.Println("[LoginUser] Request received")
 	var req models.LoginRequest
+
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		log.Println("[LoginUser] Failed to decode request:", err)
 		utils.JSONError(w, "Invalid request body", http.StatusBadRequest)
+
 		return
 	}
 
@@ -63,6 +70,7 @@ func (h *UserHandler) LoginUser(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Println("[LoginUser] Authentication failed:", err)
 		utils.JSONError(w, "Invalid credentials", http.StatusUnauthorized)
+
 		return
 	}
 	log.Println("[LoginUser] Authentication successful for user:", user.ID)
@@ -71,6 +79,7 @@ func (h *UserHandler) LoginUser(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Println("[LoginUser] Failed to generate JWT:", err)
 		utils.JSONError(w, "Failed to generate token", http.StatusInternalServerError)
+
 		return
 	}
 
@@ -88,9 +97,9 @@ func (h *UserHandler) generateJWTToken(userID int, username string) (string, err
 	claims := jwt.MapClaims{
 		"user_id":  userID,
 		"username": username,
-		"exp":      time.Now().Add(time.Hour * 24 * 7).Unix(),	// 1 week
+		"exp":      time.Now().Add(time.Hour * 24 * 7).Unix(), // 1 week
 	}
-
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+
 	return token.SignedString([]byte(cfg.JWTSecret))
 }
