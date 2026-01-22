@@ -72,29 +72,27 @@ func main() {
 		IdleTimeout:  15 * time.Second,
 	}
 
-	// start server in background
-	go func() {
-		log.Printf("Server starting on port %s", cfg.Port)
-		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			log.Fatal("Failed to start server:", err)
-		}
-	}()
-
-	// try to shutdown gracefully on termination (SIGINT/SIGTERM signal)
-	quit := make(chan os.Signal, 1)
-	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
-	<-quit
-
-	log.Println("Shutting down server...")
-
-	// graceful shutdown with timeout
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-	defer cancel()
-
-	if err := server.Shutdown(ctx); err != nil {
-		log.Fatal("Server forced to shutdown:", err)
+	log.Printf("Server starting on port %s", cfg.Port)
+	if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		log.Fatal("Failed to start server:", err)
 	}
 
+	// try to shutdown gracefully on termination signal if running interactively
+	if os.Getenv("INTERACTIVE") == "1" {
+		quit := make(chan os.Signal, 1)
+		signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+		<-quit
+
+		log.Println("Shutting down server...")
+
+		// graceful shutdown with timeout
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+
+		if err := server.Shutdown(ctx); err != nil {
+			log.Fatal("Server forced to shutdown:", err)
+		}
+	}
 	log.Println("Server exited")
 }
 

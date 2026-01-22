@@ -89,7 +89,10 @@ go build -o minify .
 ```
 
 6. **Frontend**
-```bashnpm install
+Install dependencies and run the NextJS app
+```bash
+npm install
+
 npm run dev   # for development
 npm run build # build for production
 npm start     # start frontend
