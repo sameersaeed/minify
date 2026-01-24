@@ -2,6 +2,7 @@ package utils
 
 import (
 	"encoding/json"
+	"io"
 	"net"
 	"net/http"
 	"net/url"
@@ -38,17 +39,19 @@ func IsValidURL(str string) bool {
 // GetBaseURL extracts the base URL from request or config
 func GetBaseURL(r *http.Request) string {
 	cfg := config.Load()
-	
-	// if request came through a proxy, use the original host
-	if host := r.Header.Get("X-Forwarded-Host"); host != "" {
-		if r.Header.Get("X-Forwarded-Proto") == "https" {
-			return "https://" + host
-		}
-		return "http://" + host
+
+	// use url from config if its set as something other than localhost
+	if cfg.FrontendURL != "" && !isLocalhost(cfg.FrontendURL) {
+		return strings.TrimRight(cfg.FrontendURL, "/")
 	}
-	
-	// otherwise use the base url from config
-	return cfg.BaseURL
+
+	// otherwise try to get the public ip of the url
+	if ip, err := getPublicIP(); err == nil {
+		return "http://" + ip
+	}
+
+	// fallback to localhost if netiher can be retrieved
+	return "http://localhost"
 }
 
 // GetClientIP extracts client IP from request
@@ -91,7 +94,7 @@ func ValidateStruct(s interface{}) error {
 		rules := strings.Split(tag, ",")
 		for _, rule := range rules {
 			rule = strings.TrimSpace(rule)
-			
+
 			switch {
 			case rule == "required":
 				if isEmptyValue(field) {
@@ -166,4 +169,26 @@ func parseIntFromRule(rule, prefix string) int {
 		return 50
 	}
 	return 0
+}
+
+func getPublicIP() (string, error) {
+	resp, err := http.Get("https://api.ipify.org")
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	b, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", err
+	}
+
+	return strings.TrimSpace(string(b)), nil
+}
+
+func isLocalhost(url string) bool {
+	u := strings.ToLower(url)
+	return strings.Contains(u, "localhost") ||
+		strings.Contains(u, "127.0.0.1") ||
+		strings.Contains(u, "::1")
 }
