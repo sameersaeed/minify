@@ -50,7 +50,7 @@ func GetBaseURL(r *http.Request) string {
 		return "http://" + ip
 	}
 
-	// fallback to localhost if netiher can be retrieved
+	// fallback to localhost if neither can be retrieved
 	return "http://localhost"
 }
 
