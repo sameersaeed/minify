@@ -24,6 +24,8 @@ spec:
                   matchLabels:
                     app: backend
                 topologyKey: kubernetes.io/hostname
+      imagePullSecrets:
+        - name: ghcr-secret
       containers:
         - name: backend
           image: ghcr.io/sameersaeed/minify-backend:latest
