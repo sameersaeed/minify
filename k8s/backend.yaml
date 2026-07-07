@@ -33,9 +33,9 @@ spec:
             - name: PORT
               value: "8080"
             - name: BASE_URL
-              value: "https://minify.example.com"
+              value: "http://api.129.153.59.10.nip.io"
             - name: FRONTEND_URL
-              value: "https://minify.example.com"
+              value: "http://app.129.153.59.10.nip.io"
             - name: DATABASE_URL
               valueFrom:
                 secretKeyRef:

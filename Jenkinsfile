@@ -2,83 +2,71 @@ pipeline {
     agent any
 
     environment {
-        SSH_USER = credentials('oracle-server-user')
-        SSH_HOST = credentials('oracle-server-host')
-        DEPLOY_PATH = credentials('oracle-server-path')
-
+        REGISTRY   = "ghcr.io/sameersaeed"
+        IMAGE_TAG  = "${GIT_COMMIT.take(8)}"
         JWT_SECRET = credentials('jwt-secret-key')
-        POSTGRES_PASSWORD = credentials('postgres-password')
     }
-
+    
     stages {
-        stage('Checkout remote') {
+        stage('Checkout') {
             steps {
                 checkout scm
             }
         }
 
-        stage('Cleanup existing files on server') {
+        stage('Test backend') {
             steps {
-                sshagent(credentials: ['oracle-server-key']) {
-                    sh ''' 
-                        ssh $SSH_USER@$SSH_HOST "
-                            sleep 1
-                            rm -rf minify/frontend-standalone
-                            exit 0
-                        "
+                sh 'go vet ./...'
+                sh 'go test ./...'
+            }
+        }
+
+        stage('Build + push backend image') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'minify-ghcr-credentials', usernameVariable: 'GHCR_USER', passwordVariable: 'GHCR_TOKEN')]) {
+                    sh '''
+                        echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
+                        docker build -f Dockerfile.backend -t $REGISTRY/minify-backend:$IMAGE_TAG -t $REGISTRY/minify-backend:latest .
+                        docker push $REGISTRY/minify-backend:$IMAGE_TAG
+                        docker push $REGISTRY/minify-backend:latest
                     '''
                 }
             }
         }
 
-        stage('Build and deploy to server') {
+        stage('Build + push frontend image') {
             steps {
-                dir('minify') {
-                    // build + deploy backend
-                    sh 'GOOS=linux GOARCH=arm64 go mod tidy'
-                    sh 'GOOS=linux GOARCH=arm64 go build -o minify'
-
-                    // build frontend locally
+                withCredentials([usernamePassword(credentialsId: 'minify-ghcr-credentials', usernameVariable: 'GHCR_USER', passwordVariable: 'GHCR_TOKEN')]) {
                     dir('frontend') {
                         sh '''
-                        export NODE_ENV=production
-
-                        npm install --include=dev
-                        NEXT_PUBLIC_API_URL=http://$SSH_HOST:8080 NEXT_PUBLIC_APP_NAME=minify npm run build
+                            docker build \
+                                --build-arg NEXT_PUBLIC_API_URL=http://api.129.153.59.10.nip.io \
+                                -t $REGISTRY/minify-frontend:$IMAGE_TAG \
+                                -t $REGISTRY/minify-frontend:latest .
+                            docker push $REGISTRY/minify-frontend:$IMAGE_TAG
+                            docker push $REGISTRY/minify-frontend:latest
                         '''
                     }
+                }
+            }
+        }
 
-                    sshagent(credentials: ['oracle-server-key']) {
-                        sh '''
-                        # copy + start backend server binary
-                        ssh $SSH_USER@$SSH_HOST "mkdir -p $DEPLOY_PATH && chmod u+w $DEPLOY_PATH && rm -f $DEPLOY_PATH/minify"
-                        scp minify $SSH_USER@$SSH_HOST:$DEPLOY_PATH/minify
+        stage('Bump GitOps manifest') {
+            steps {
+                sshagent(credentials: ['github-ssh-key']) {
+                    sh '''
+                        cd k8s
+                        curl -sL https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2Fv5.4.1/kustomize_v5.4.1_linux_amd64.tar.gz | tar xz
+                        ./kustomize edit set image $REGISTRY/minify-backend:$IMAGE_TAG
+                        ./kustomize edit set image $REGISTRY/minify-frontend:$IMAGE_TAG
+                        cd ..
 
-                        ssh $SSH_USER@$SSH_HOST "
-                            chmod +x $DEPLOY_PATH/start_backend.sh
-                            $DEPLOY_PATH/start_backend.sh
-                        "
-
-                        # copy over + deploy standalone build
-                        scp -r frontend/.next/standalone $SSH_USER@$SSH_HOST:$DEPLOY_PATH/frontend-standalone
-                        scp -r frontend/.next/static $SSH_USER@$SSH_HOST:$DEPLOY_PATH/frontend-standalone/.next/
-
-                        if [ -d frontend/public ]; then
-                            scp -r frontend/public $SSH_USER@$SSH_HOST:$DEPLOY_PATH/frontend-standalone/
-                        fi
-
-                        ssh $SSH_USER@$SSH_HOST "
-                            if ! command -v pm2 &> /dev/null; then
-                                sudo npm install -g pm2
-                            fi
-
-                            cd $DEPLOY_PATH/frontend-standalone
-                            pm2 delete frontend 2>/dev/null || true
-                            HOSTNAME=127.0.0.1 PORT=3000 pm2 start server.js --name frontend --update-env
-                            pm2 save
-                        "
-                        '''
-                    }
+                        git config user.email "jenkins@minify.local"
+                        git config user.name "jenkins"
+                        git add k8s/kustomization.yaml
+                        git commit -m "ci: bump image tag to $IMAGE_TAG [skip ci]" || echo "nothing to commit"
+                        git push origin HEAD:main
+                    '''
                 }
             }
         }

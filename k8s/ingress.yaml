@@ -8,7 +8,7 @@ metadata:
 spec:
   rules:
     # frontend url
-    - host: minify.example.com          # replace with your real domain (or e.g. <vm-ip>.nip.io)
+    - host: app.129.153.59.10.nip.io
       http:
         paths:
           - path: /
@@ -19,7 +19,7 @@ spec:
                 port:
                   number: 3000
     # backend API + short-link redirects 
-    - host: api.minify.example.com      # replace with your real API subdomain
+    - host: api.129.153.59.10.nip.io
       http:
         paths:
           - path: /
