@@ -3,9 +3,8 @@ kind: Ingress
 metadata:
   name: minify
   namespace: minify
-  annotations:
-    kubernetes.io/ingress.class: traefik
 spec:
+  ingressClassName: traefik
   rules:
     # frontend url
     - host: app.129.153.59.10.nip.io
