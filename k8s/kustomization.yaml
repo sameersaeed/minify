@@ -12,6 +12,6 @@ resources:
 
 images:
 - name: ghcr.io/sameersaeed/minify-backend
-  newTag: 8c109020
+  newTag: 1962bb54
 - name: ghcr.io/sameersaeed/minify-frontend
-  newTag: 8c109020
+  newTag: 1962bb54
