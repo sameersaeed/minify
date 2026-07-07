@@ -117,10 +117,12 @@ func setupRoutes(router *mux.Router, urlHandler *handlers.URLHandler, userHandle
 	api.HandleFunc("/analytics/popular", analyticsHandler.GetPopularURLs).Methods("GET")
 	api.HandleFunc("/analytics/timeframe/{period}", analyticsHandler.GetTimeframeStats).Methods("GET")
 
-	// redirect + healthcheck
-	router.HandleFunc("/{shortCode}", urlHandler.RedirectURL).Methods("GET")
+	// healthcheck
 	router.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("OK"))
 	}).Methods("GET")
+
+	// redirect
+	router.HandleFunc("/{shortCode}", urlHandler.RedirectURL).Methods("GET")
 }
