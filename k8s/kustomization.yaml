@@ -4,14 +4,14 @@ kind: Kustomization
 namespace: minify
 
 resources:
-  - namespace.yaml
-  - postgres.yaml
-  - backend.yaml
-  - frontend.yaml
-  - ingress.yaml
+- namespace.yaml
+- postgres.yaml
+- backend.yaml
+- frontend.yaml
+- ingress.yaml
 
 images:
-  - name: ghcr.io/sameersaeed/minify-backend
-    newTag: latest
-  - name: ghcr.io/sameersaeed/minify-frontend
-    newTag: latest
+- name: ghcr.io/sameersaeed/minify-backend
+  newTag: 6c4d2f10
+- name: ghcr.io/sameersaeed/minify-frontend
+  newTag: 6c4d2f10
