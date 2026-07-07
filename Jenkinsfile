@@ -38,17 +38,20 @@ pipeline {
         stage('Build + push frontend image') {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'minify-ghcr-credentials', usernameVariable: 'GHCR_USER', passwordVariable: 'GHCR_TOKEN')]) {
-                        dir('frontend') {
-                            sh '''
-                                export DOCKER_BUILDKIT=1
-                                docker build \
-                                  --build-arg NEXT_PUBLIC_API_URL=http://api.129.153.59.10.nip.io \
-                                  -t $REGISTRY/minify-frontend:$IMAGE_TAG \
-                                  -t $REGISTRY/minify-frontend:latest .
-                                docker push $REGISTRY/minify-frontend:$IMAGE_TAG
-                                docker push $REGISTRY/minify-frontend:latest
-                            '''
-                        }
+                    dir('frontend') {
+                        sh '''
+                            echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
+
+                            export DOCKER_BUILDKIT=1
+                            docker build \
+                            --build-arg NEXT_PUBLIC_API_URL=http://api.129.153.59.10.nip.io \
+                            -t $REGISTRY/minify-frontend:$IMAGE_TAG \
+                            -t $REGISTRY/minify-frontend:latest .
+
+                            docker push $REGISTRY/minify-frontend:$IMAGE_TAG
+                            docker push $REGISTRY/minify-frontend:latest
+                        '''
+                    }
                 }
             }
         }

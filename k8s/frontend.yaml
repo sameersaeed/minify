@@ -29,7 +29,7 @@ spec:
         - name: ghcr-secret            
       containers:
         - name: frontend
-          image: ghcr.io/sameersaeed/minify-frontend:latest
+          image: ghcr.io/sameersaeed/minify-frontend
           ports:
             - containerPort: 3000
           resources:

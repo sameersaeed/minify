@@ -29,7 +29,7 @@ spec:
         - name: ghcr-secret
       containers:
         - name: backend
-          image: ghcr.io/sameersaeed/minify-backend:latest
+          image: ghcr.io/sameersaeed/minify-backend
           ports:
             - containerPort: 8080
           env:
