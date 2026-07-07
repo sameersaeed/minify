@@ -1,0 +1,31 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: minify
+  namespace: minify
+  annotations:
+    kubernetes.io/ingress.class: traefik
+spec:
+  rules:
+    # frontend url
+    - host: minify.example.com          # replace with your real domain (or e.g. <vm-ip>.nip.io)
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: frontend
+                port:
+                  number: 3000
+    # backend API + short-link redirects 
+    - host: api.minify.example.com      # replace with your real API subdomain
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: backend
+                port:
+                  number: 8080

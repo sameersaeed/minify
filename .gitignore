@@ -3,3 +3,6 @@ frontend/.next/*
 
 minify
 .env
+
+terraform/.terraform/*
+terraform/terraform.tfstate

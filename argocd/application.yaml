@@ -1,0 +1,28 @@
+# Applied once manually, to bootstrap ArgoCD watching the repo:
+# Afterwards every change goes: 
+#  1. push to git 
+#  2. Jenkins builds + pushes image + bumps the tag version
+#  3. ArgoCD notices the git diff and syncs it live
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: minify
+  namespace: argocd
+spec:
+  project: default
+
+  source:
+    repoURL: https://github.com/sameersaeed/minify.git
+    targetRevision: main
+    path: k8s
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: minify
+
+  syncPolicy:
+    automated:
+      prune: true     # remove resources deleted from git
+      selfHeal: true  # revert manual kubectl edits back to what's in git
+    syncOptions:
+      - CreateNamespace=true
